@@ -1,7 +1,7 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-
-class Game extends React.Component {
+import Timer from '../Timer';
+import Score from '../Score';
+export default class Game extends React.Component {
 
     state = {
         click: 0,
@@ -15,23 +15,23 @@ class Game extends React.Component {
 
     render() {
         let message;
+        let timer = null;
         if (this.state.gameStart) {
             message = this.state.click;
+            timer = (
+                <Timer timeLimit={this.timeLimit} timeStart={this.timeStart} />
+            )
         } else {
             message = 'กดตรงไหนก็ได้เพื่อเล่น';
 
         }
-        let timer = '';
-        if (this.state.gameStart) {
-            timer = `เหลือเวลาอยู่ ${this.formatTime()} sec`;
 
-        }
 
         return (
             <div>
                 <div className="title" id="title">Clickr</div>
-                <div id="message">{message}</div>
-                <div id="timer">{timer}</div>
+                <Score score={message}/>
+                {timer}
             </div>
         )
 
@@ -42,7 +42,9 @@ class Game extends React.Component {
 
     }
     onClick = () => {
-
+        if (this.state.gameStart && this.getTimeLeft() <= 0) {
+            return;
+        }
 
         this.setState({
             click: this.state.click + 1,
@@ -53,41 +55,31 @@ class Game extends React.Component {
                 gameStart: true
 
             });
-            this.startTimer();
+
+            setTimeout(()=>{
+                this.props.onGameFinish(this.state.click);
+            },this.timeLimit + 500);
+
         }
 
-    }
-
-    startTimer() {
-        this.interval = setInterval(() => {
-            let timeDiff = this.getTimeLeft();
-            if (timeDiff <= 0) {
-                clearInterval(this.interval);
-                timeDiff = 0;
-                window.removeEventListener('click', this.onClick);
-            }
-            this.forceUpdate();
-
-
-
-        }, 100)
-
 
 
     }
+
+
     getTimeLeft() {
         let currentTime = new Date().getTime();
+    
         let timeDiff = (this.timeLimit + this.timeStart) - currentTime;
+    
         if (timeDiff <= 0) {
             timeDiff = 0;
         }
         return timeDiff;
     }
-    formatTime(){
 
-        return (this.getTimeLeft() / 1000).toFixed(1);
 
-    }
+
 
 
 }
